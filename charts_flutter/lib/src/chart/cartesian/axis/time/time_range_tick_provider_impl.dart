@@ -1,0 +1,142 @@
+// Copyright 2018 the Charts project authors. Please see the AUTHORS file
+// for details.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import 'package:charts_flutter/src/chart/cartesian/axis/axis.dart'
+    show AxisOrientation;
+import 'package:charts_flutter/src/chart/cartesian/axis/draw_strategy/tick_draw_strategy.dart'
+    show TickDrawStrategy;
+import 'package:charts_flutter/src/chart/cartesian/axis/tick.dart'
+    show Tick;
+import 'package:charts_flutter/src/chart/cartesian/axis/tick_formatter.dart'
+    show TickFormatter;
+import 'package:charts_flutter/src/chart/cartesian/axis/tick_provider.dart'
+    show TickHint;
+import 'package:charts_flutter/src/chart/cartesian/axis/time/date_time_extents.dart'
+    show DateTimeExtents;
+import 'package:charts_flutter/src/chart/cartesian/axis/time/date_time_scale.dart'
+    show DateTimeScale;
+import 'package:charts_flutter/src/chart/cartesian/axis/time/time_range_tick_provider.dart'
+    show TimeRangeTickProvider;
+import 'package:charts_flutter/src/chart/cartesian/axis/time/time_stepper.dart'
+    show TimeStepper;
+import 'package:charts_flutter/src/chart/common/chart_context.dart'
+    show ChartContext;
+import 'package:charts_flutter/src/common/graphics_factory.dart'
+    show GraphicsFactory;
+
+// Contains all the common code for the time range tick providers.
+class TimeRangeTickProviderImpl extends TimeRangeTickProvider {
+  TimeRangeTickProviderImpl(this.timeStepper, {this.requiredMinimumTicks = 3});
+  final int requiredMinimumTicks;
+  final TimeStepper timeStepper;
+
+  @override
+  bool providesSufficientTicksForRange(DateTimeExtents domainExtents) {
+    final cnt = timeStepper.getStepCountBetween(domainExtents, 1);
+    return cnt >= requiredMinimumTicks;
+  }
+
+  /// Find the closet step size, from provided step size, in milliseconds.
+  @override
+  int getClosestStepSize(int stepSize) =>
+      timeStepper.typicalStepSizeMs *
+      _getClosestIncrementFromStepSize(stepSize);
+
+  // Find the increment that is closest to the step size.
+  int _getClosestIncrementFromStepSize(int stepSize) {
+    int? minDifference;
+    late int closestIncrement;
+
+    assert(timeStepper.allowedTickIncrements.isNotEmpty, 'No increments set.');
+    for (final increment in timeStepper.allowedTickIncrements) {
+      final difference =
+          (stepSize - (timeStepper.typicalStepSizeMs * increment)).abs();
+      if (minDifference == null || minDifference > difference) {
+        minDifference = difference;
+        closestIncrement = increment;
+      }
+    }
+
+    return closestIncrement;
+  }
+
+  @override
+  List<Tick<DateTime>> getTicks({
+    required ChartContext? context,
+    required GraphicsFactory graphicsFactory,
+    required DateTimeScale scale,
+    required TickFormatter<DateTime> formatter,
+    required Map<DateTime, String> formatterValueCache,
+    required TickDrawStrategy<DateTime> tickDrawStrategy,
+    required AxisOrientation? orientation,
+    bool viewportExtensionEnabled = false,
+    TickHint<DateTime>? tickHint,
+  }) {
+    late List<Tick<DateTime>> currentTicks;
+    final tickValues = <DateTime>[];
+    final timeStepIt = timeStepper.getSteps(scale.viewportDomain).iterator;
+
+    // Try different tickIncrements and choose the first that has no collisions.
+    // If none exist use the last one which should have the fewest ticks and
+    // hope that the renderer will resolve collisions.
+    //
+    // If a tick hint was provided, use the tick hint to search for the closest
+    // increment and use that.
+    List<int> allowedTickIncrements;
+    if (tickHint != null) {
+      final stepSize = tickHint.end.difference(tickHint.start).inMilliseconds;
+      allowedTickIncrements = [_getClosestIncrementFromStepSize(stepSize)];
+    } else {
+      allowedTickIncrements = timeStepper.allowedTickIncrements;
+    }
+    assert(
+      allowedTickIncrements.isNotEmpty,
+      "Allowed tick increments can't be empty.",
+    );
+
+    for (final tickIncrement in allowedTickIncrements) {
+      // Create tick values with a specified increment.
+      tickValues.clear();
+      timeStepIt.reset(tickIncrement);
+      while (timeStepIt.moveNext()) {
+        tickValues.add(timeStepIt.current);
+      }
+
+      // Create ticks
+      currentTicks = createTicks(
+        tickValues,
+        context: context,
+        graphicsFactory: graphicsFactory,
+        scale: scale,
+        formatter: formatter,
+        formatterValueCache: formatterValueCache,
+        tickDrawStrategy: tickDrawStrategy,
+        stepSize: timeStepper.typicalStepSizeMs * tickIncrement,
+      );
+
+      // Request collision check from draw strategy.
+      final collisionReport =
+          tickDrawStrategy.collides(currentTicks, orientation);
+
+      if (!collisionReport.ticksCollide) {
+        // Return the first non colliding ticks.
+        return currentTicks;
+      }
+    }
+
+    // If all ticks collide, return the last generated ticks.
+    return currentTicks;
+  }
+}

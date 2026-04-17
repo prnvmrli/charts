@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:charts_common/common.dart' as common
+import 'package:charts_flutter/common.dart' as common
     show
         BehaviorPosition,
         ChartBehavior,
@@ -26,7 +26,7 @@ import 'package:charts_common/common.dart' as common
         SelectionModelType,
         TextStyleSpec;
 import 'package:flutter/widgets.dart'
-    show BuildContext, EdgeInsets, Widget, hashValues;
+    show BuildContext, EdgeInsets, Widget;
 import 'package:meta/meta.dart' show immutable;
 import '../../chart_container.dart' show ChartContainerRenderObject;
 import '../chart_behavior.dart'
@@ -275,7 +275,7 @@ class DatumLegend<D> extends ChartBehavior<D> {
 
   @override
   int get hashCode {
-    return hashValues(
+    return Object.hash(
         selectionModelType,
         contentBuilder,
         position,
