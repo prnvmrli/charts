@@ -19,6 +19,7 @@ import 'package:charts_flutter/common.dart'
 import 'behaviors/chart_behavior.dart' show ChartBehavior;
 import 'base_chart.dart' show BaseChart, LayoutConfig;
 import 'base_chart_state.dart' show BaseChartState;
+import 'interactions/chart_interactions.dart' show ChartInteractions;
 import 'selection_model_config.dart' show SelectionModelConfig;
 
 class PieChart<D> extends BaseChart<D> {
@@ -28,6 +29,7 @@ class PieChart<D> extends BaseChart<D> {
     Duration? animationDuration,
     common.ArcRendererConfig<D>? defaultRenderer,
     List<ChartBehavior<D>>? behaviors,
+    ChartInteractions<D>? interactions,
     List<SelectionModelConfig<D>>? selectionModels,
     common.RTLSpec? rtlSpec,
     LayoutConfig? layoutConfig,
@@ -38,6 +40,7 @@ class PieChart<D> extends BaseChart<D> {
          animationDuration: animationDuration,
          defaultRenderer: defaultRenderer,
          behaviors: behaviors,
+         interactions: interactions,
          selectionModels: selectionModels,
          rtlSpec: rtlSpec,
          layoutConfig: layoutConfig,

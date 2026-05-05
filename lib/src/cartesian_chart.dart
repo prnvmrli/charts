@@ -30,6 +30,7 @@ import 'package:charts_flutter/common.dart'
 import 'base_chart_state.dart' show BaseChartState;
 import 'behaviors/chart_behavior.dart' show ChartBehavior;
 import 'base_chart.dart' show BaseChart, LayoutConfig;
+import 'interactions/chart_interactions.dart' show ChartInteractions;
 import 'selection_model_config.dart' show SelectionModelConfig;
 import 'user_managed_state.dart' show UserManagedState;
 
@@ -52,6 +53,7 @@ abstract class CartesianChart<D> extends BaseChart<D> {
     common.SeriesRendererConfig<D>? defaultRenderer,
     List<common.SeriesRendererConfig<D>>? customSeriesRenderers,
     List<ChartBehavior<D>>? behaviors,
+    ChartInteractions<D>? interactions,
     List<SelectionModelConfig<D>>? selectionModels,
     common.RTLSpec? rtlSpec,
     bool defaultInteractions = true,
@@ -65,6 +67,7 @@ abstract class CartesianChart<D> extends BaseChart<D> {
          defaultRenderer: defaultRenderer,
          customSeriesRenderers: customSeriesRenderers,
          behaviors: behaviors,
+         interactions: interactions,
          selectionModels: selectionModels,
          rtlSpec: rtlSpec,
          defaultInteractions: defaultInteractions,

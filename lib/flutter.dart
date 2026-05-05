@@ -184,10 +184,22 @@ export 'src/behaviors/range_annotation.dart' show RangeAnnotation;
 export 'src/behaviors/select_nearest.dart' show SelectNearest;
 export 'src/behaviors/sliding_viewport.dart' show SlidingViewport;
 export 'src/behaviors/slider/slider.dart' show Slider;
+export 'src/behaviors/tooltip/trackball_tooltip.dart'
+    show
+        ChartTooltip,
+        ChartTooltipActivationMode,
+        ChartTooltipBuilder,
+        ChartTooltipDatum,
+        ChartTooltipDetails,
+        ChartTooltipGrouping,
+        ChartTooltipPersistence,
+        ChartTrackball,
+        ChartTrackballLineStyle;
 export 'src/behaviors/zoom/initial_hint_behavior.dart' show InitialHintBehavior;
 export 'src/behaviors/zoom/pan_and_zoom_behavior.dart' show PanAndZoomBehavior;
 export 'src/behaviors/zoom/pan_behavior.dart' show PanBehavior;
 export 'src/combo_chart/combo_chart.dart';
+export 'src/interactions/chart_interactions.dart' show ChartInteractions;
 export 'src/line_chart.dart';
 export 'src/pie_chart.dart';
 export 'src/scatter_plot_chart.dart';

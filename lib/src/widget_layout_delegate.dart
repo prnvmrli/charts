@@ -13,7 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:ui' show Offset;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -38,21 +37,28 @@ class WidgetLayoutDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
-    // TODO: Change this to a layout manager that supports more
-    // than one buildable behavior that changes chart size. Remove assert when
-    // this is possible.
-    assert(idAndBehavior.keys.isEmpty || idAndBehavior.keys.length == 1);
-
     // Size available for the chart widget.
     var availableWidth = size.width;
     var availableHeight = size.height;
     var chartOffset = Offset.zero;
 
-    // Measure the first buildable behavior.
-    final behaviorID = idAndBehavior.keys.isNotEmpty
-        ? idAndBehavior.keys.first
+    final outsideBehaviorIDs = idAndBehavior.keys
+        .where(
+          (id) => idAndBehavior[id]!.position != common.BehaviorPosition.inside,
+        )
+        .toList();
+    final insideBehaviorIDs = idAndBehavior.keys
+        .where(
+          (id) => idAndBehavior[id]!.position == common.BehaviorPosition.inside,
+        )
+        .toList();
+
+    // Existing chart layout supports a single size-affecting behavior, such as
+    // a legend. Inside behaviors are overlays and do not consume chart space.
+    final behaviorID = outsideBehaviorIDs.isNotEmpty
+        ? outsideBehaviorIDs.first
         : null;
-    var behaviorSize = Size.zero;
+    final behaviorSizes = <String, Size>{};
     if (behaviorID != null) {
       if (hasChild(behaviorID)) {
         final leftPosition = isRTL
@@ -63,7 +69,11 @@ class WidgetLayoutDelegate extends MultiChildLayoutDelegate {
             : common.BehaviorPosition.end;
         final behaviorPosition = idAndBehavior[behaviorID]!.position;
 
-        behaviorSize = layoutChild(behaviorID, new BoxConstraints.loose(size));
+        final behaviorSize = layoutChild(
+          behaviorID,
+          new BoxConstraints.loose(size),
+        );
+        behaviorSizes[behaviorID] = behaviorSize;
         if (behaviorPosition == common.BehaviorPosition.top) {
           chartOffset = new Offset(0.0, behaviorSize.height);
           availableHeight -= behaviorSize.height;
@@ -85,19 +95,37 @@ class WidgetLayoutDelegate extends MultiChildLayoutDelegate {
       positionChild(chartID, chartOffset);
     }
 
-    // Position buildable behavior.
+    for (final id in insideBehaviorIDs) {
+      if (!hasChild(id)) {
+        continue;
+      }
+
+      final overlaySize = layoutChild(id, new BoxConstraints.tight(chartSize));
+      behaviorSizes[id] = overlaySize;
+      positionChild(id, chartOffset);
+    }
+
+    // Position size-affecting buildable behavior.
     if (behaviorID != null) {
-      // TODO: Unable to relayout with new smaller width.
-      // In the delegate, all children are required to have layout called
-      // exactly once.
       final behaviorOffset = _getBehaviorOffset(
         idAndBehavior[behaviorID]!,
-        behaviorSize: behaviorSize,
+        behaviorSize: behaviorSizes[behaviorID] ?? Size.zero,
         chartSize: chartSize,
         isRTL: isRTL,
       );
 
       positionChild(behaviorID, behaviorOffset);
+    }
+
+    // Layout any additional outside behaviors so the delegate satisfies the
+    // MultiChildLayout contract. They are layered at origin until the chart
+    // layout manager grows full multi-behavior outside positioning support.
+    for (final id in outsideBehaviorIDs.skip(1)) {
+      if (!hasChild(id)) {
+        continue;
+      }
+      layoutChild(id, new BoxConstraints.loose(size));
+      positionChild(id, Offset.zero);
     }
   }
 

@@ -30,6 +30,7 @@ import 'behaviors/chart_behavior.dart' show ChartBehavior;
 import 'base_chart.dart' show LayoutConfig;
 import 'base_chart_state.dart' show BaseChartState;
 import 'cartesian_chart.dart' show CartesianChart;
+import 'interactions/chart_interactions.dart' show ChartInteractions;
 import 'selection_model_config.dart' show SelectionModelConfig;
 import 'user_managed_state.dart' show UserManagedState;
 
@@ -45,6 +46,7 @@ class LineChart extends CartesianChart<num> {
     common.LineRendererConfig<num>? defaultRenderer,
     List<common.SeriesRendererConfig<num>>? customSeriesRenderers,
     List<ChartBehavior<num>>? behaviors,
+    ChartInteractions<num>? interactions,
     List<SelectionModelConfig<num>>? selectionModels,
     common.RTLSpec? rtlSpec,
     LayoutConfig? layoutConfig,
@@ -62,6 +64,7 @@ class LineChart extends CartesianChart<num> {
          defaultRenderer: defaultRenderer,
          customSeriesRenderers: customSeriesRenderers,
          behaviors: behaviors,
+         interactions: interactions,
          selectionModels: selectionModels,
          rtlSpec: rtlSpec,
          layoutConfig: layoutConfig,

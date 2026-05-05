@@ -30,6 +30,7 @@ import 'behaviors/line_point_highlighter.dart' show LinePointHighlighter;
 import 'cartesian_chart.dart' show CartesianChart;
 import 'base_chart.dart' show LayoutConfig;
 import 'base_chart_state.dart' show BaseChartState;
+import 'interactions/chart_interactions.dart' show ChartInteractions;
 import 'selection_model_config.dart' show SelectionModelConfig;
 import 'user_managed_state.dart' show UserManagedState;
 
@@ -51,6 +52,7 @@ class TimeSeriesChart extends CartesianChart<DateTime> {
     common.SeriesRendererConfig<DateTime>? defaultRenderer,
     List<common.SeriesRendererConfig<DateTime>>? customSeriesRenderers,
     List<ChartBehavior<DateTime>>? behaviors,
+    ChartInteractions<DateTime>? interactions,
     List<SelectionModelConfig<DateTime>>? selectionModels,
     LayoutConfig? layoutConfig,
     this.dateTimeFactory,
@@ -68,6 +70,7 @@ class TimeSeriesChart extends CartesianChart<DateTime> {
          defaultRenderer: defaultRenderer,
          customSeriesRenderers: customSeriesRenderers,
          behaviors: behaviors,
+         interactions: interactions,
          selectionModels: selectionModels,
          layoutConfig: layoutConfig,
          defaultInteractions: defaultInteractions,

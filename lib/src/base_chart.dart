@@ -29,6 +29,7 @@ import 'behaviors/select_nearest.dart' show SelectNearest;
 import 'package:meta/meta.dart' show immutable;
 import 'behaviors/chart_behavior.dart'
     show ChartBehavior, ChartStateBehavior, GestureType;
+import 'interactions/chart_interactions.dart' show ChartInteractions;
 import 'selection_model_config.dart' show SelectionModelConfig;
 import 'package:flutter/material.dart' show StatefulWidget;
 import 'base_chart_state.dart' show BaseChartState;
@@ -55,6 +56,8 @@ abstract class BaseChart<D> extends StatefulWidget {
 
   final List<ChartBehavior<D>>? behaviors;
 
+  final ChartInteractions<D>? interactions;
+
   final List<SelectionModelConfig<D>>? selectionModels;
 
   // List of custom series renderers used to draw series data on the chart.
@@ -77,6 +80,7 @@ abstract class BaseChart<D> extends StatefulWidget {
     this.defaultRenderer,
     this.customSeriesRenderers,
     this.behaviors,
+    this.interactions,
     this.selectionModels,
     this.rtlSpec,
     this.defaultInteractions = true,
@@ -132,10 +136,13 @@ abstract class BaseChart<D> extends StatefulWidget {
   }
 
   void _updateBehaviors(common.BaseChart chart, BaseChartState<D> chartState) {
-    final behaviorList = List<ChartBehavior<D>>.from(behaviors ?? []);
+    final behaviorList = <ChartBehavior<D>>[
+      ...?interactions?.createBehaviors(),
+      ...?behaviors,
+    ];
 
     // Insert automatic behaviors to the front of the behavior list.
-    if (defaultInteractions) {
+    if (interactions?.includeDefaultInteractions ?? defaultInteractions) {
       if (chartState.autoBehaviorWidgets.isEmpty) {
         addDefaultInteractions(chartState.autoBehaviorWidgets);
       }
@@ -143,7 +150,11 @@ abstract class BaseChart<D> extends StatefulWidget {
       // Add default interaction behaviors to the front of the list if they
       // don't conflict with user behaviors by role.
       chartState.autoBehaviorWidgets.reversed
-          .where(_notACustomBehavior)
+          .where(
+            (behavior) => !behaviorList.any(
+              (userBehavior) => userBehavior.role == behavior.role,
+            ),
+          )
           .forEach((ChartBehavior<D> behavior) {
             behaviorList.insert(0, behavior);
           });
@@ -156,9 +167,10 @@ abstract class BaseChart<D> extends StatefulWidget {
       final addedBehavior = chartState.addedBehaviorWidgets[i];
       if (!behaviorList.remove(addedBehavior)) {
         final role = addedBehavior.role;
+        final commonBehavior = chartState.addedCommonBehaviorsByRole[role];
         chartState.addedBehaviorWidgets.remove(addedBehavior);
         chartState.addedCommonBehaviorsByRole.remove(role);
-        chart.removeBehavior(chartState.addedCommonBehaviorsByRole[role]);
+        chart.removeBehavior(commonBehavior);
         chartState.markChartDirty();
       }
     }
@@ -190,13 +202,6 @@ abstract class BaseChart<D> extends StatefulWidget {
         selectClosestSeries: true,
       ),
     );
-  }
-
-  bool _notACustomBehavior(ChartBehavior behavior) {
-    return behaviors == null ||
-        !behaviors!.any(
-          (ChartBehavior userBehavior) => userBehavior.role == behavior.role,
-        );
   }
 
   void _updateSelectionModel(
@@ -256,17 +261,24 @@ abstract class BaseChart<D> extends StatefulWidget {
   /// held by [ChartContainerRenderObject].
   Set<GestureType> getDesiredGestures(BaseChartState chartState) {
     final types = new Set<GestureType>();
+    interactions?.createBehaviors().forEach((ChartBehavior behavior) {
+      types.addAll(behavior.desiredGestures);
+    });
     behaviors?.forEach((ChartBehavior behavior) {
       types.addAll(behavior.desiredGestures);
     });
 
-    if (defaultInteractions && chartState.autoBehaviorWidgets.isEmpty) {
+    final includeDefaultInteractions =
+        interactions?.includeDefaultInteractions ?? defaultInteractions;
+    if (includeDefaultInteractions && chartState.autoBehaviorWidgets.isEmpty) {
       addDefaultInteractions(chartState.autoBehaviorWidgets);
     }
 
-    chartState.autoBehaviorWidgets.forEach((ChartBehavior behavior) {
-      types.addAll(behavior.desiredGestures);
-    });
+    if (includeDefaultInteractions) {
+      chartState.autoBehaviorWidgets.forEach((ChartBehavior behavior) {
+        types.addAll(behavior.desiredGestures);
+      });
+    }
     return types;
   }
 }

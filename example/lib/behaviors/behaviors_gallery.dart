@@ -29,6 +29,7 @@ import 'selection_scatter_plot_highlight.dart';
 import 'selection_user_managed.dart';
 import 'slider.dart';
 import 'sliding_viewport_on_selection.dart';
+import 'tooltip_trackball.dart';
 
 List<GalleryScaffold> buildGallery() {
   return [
@@ -62,6 +63,12 @@ List<GalleryScaffold> buildGallery() {
       title: 'Selection Callback Example',
       subtitle: 'Timeseries that updates external components on selection',
       childBuilder: () => new SelectionCallbackExample.withRandomData(),
+    ),
+    new GalleryScaffold(
+      listTileIcon: new Icon(Icons.show_chart),
+      title: 'Tooltip Trackball',
+      subtitle: 'Grouped Flutter tooltip with hover, long press, and tap lock',
+      childBuilder: () => new TooltipTrackball.withRandomData(),
     ),
     new GalleryScaffold(
       listTileIcon: new Icon(Icons.flag),

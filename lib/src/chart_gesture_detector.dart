@@ -15,10 +15,12 @@
 
 import 'dart:async' show Timer;
 import 'dart:math' show Point;
+import 'package:flutter/gestures.dart' show PointerHoverEvent;
 import 'package:flutter/material.dart'
     show
         BuildContext,
         GestureDetector,
+        MouseRegion,
         RenderBox,
         ScaleEndDetails,
         ScaleStartDetails,
@@ -58,6 +60,7 @@ class ChartGestureDetector {
     final wantTapDown = desiredGestures.isNotEmpty;
     final wantTap = desiredGestures.contains(GestureType.onTap);
     final wantDrag = desiredGestures.contains(GestureType.onDrag);
+    final wantHover = desiredGestures.contains(GestureType.onHover);
 
     // LongPress is special, we'd like to be able to trigger long press before
     // Drag/Press to trigger tooltips then explore with them. This means we
@@ -65,7 +68,7 @@ class ChartGestureDetector {
     // gestures.
     _listeningForLongPress = desiredGestures.contains(GestureType.onLongPress);
 
-    return new GestureDetector(
+    final detector = new GestureDetector(
       child: chartContainer,
       onTapDown: wantTapDown ? onTapDown : null,
       onTapUp: wantTap ? onTapUp : null,
@@ -73,6 +76,16 @@ class ChartGestureDetector {
       onScaleUpdate: wantDrag ? onScaleUpdate : null,
       onScaleEnd: wantDrag ? onScaleEnd : null,
     );
+
+    return wantHover
+        ? new MouseRegion(onHover: onHover, child: detector)
+        : detector;
+  }
+
+  void onHover(PointerHoverEvent d) {
+    final container = _containerResolver();
+    final localPosition = container.globalToLocal(d.position);
+    container.gestureProxy.onHover(Point(localPosition.dx, localPosition.dy));
   }
 
   void onTapDown(TapDownDetails d) {

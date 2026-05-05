@@ -33,6 +33,7 @@ import 'package:meta/meta.dart' show immutable;
 import 'base_chart.dart' show LayoutConfig;
 import 'base_chart_state.dart' show BaseChartState;
 import 'cartesian_chart.dart' show CartesianChart;
+import 'interactions/chart_interactions.dart' show ChartInteractions;
 import 'selection_model_config.dart' show SelectionModelConfig;
 import 'user_managed_state.dart' show UserManagedState;
 
@@ -53,6 +54,7 @@ class BarChart extends CartesianChart<String> {
     common.BarRendererConfig<String>? defaultRenderer,
     List<common.SeriesRendererConfig<String>>? customSeriesRenderers,
     List<ChartBehavior<String>>? behaviors,
+    ChartInteractions<String>? interactions,
     List<SelectionModelConfig<String>>? selectionModels,
     common.RTLSpec? rtlSpec,
     this.vertical = true,
@@ -77,6 +79,7 @@ class BarChart extends CartesianChart<String> {
              ),
          customSeriesRenderers: customSeriesRenderers,
          behaviors: behaviors,
+         interactions: interactions,
          selectionModels: selectionModels,
          rtlSpec: rtlSpec,
          defaultInteractions: defaultInteractions,
