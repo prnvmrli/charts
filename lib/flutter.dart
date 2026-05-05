@@ -121,7 +121,6 @@ export 'package:charts_flutter/common.dart'
         PointRendererDecorator,
         PointRendererElement,
         PointSymbolRenderer,
-        QuantumPalette,
         RangeAnnotationAxisType,
         RangeAnnotationSegment,
         RectSymbolRenderer,
